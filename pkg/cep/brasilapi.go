@@ -19,14 +19,16 @@ type BrasilApiOutput struct {
 }
 
 type BrasilApi struct {
-	url string
+	url     string
+	timeout time.Duration
 }
 
-func NewBrasilApi(host string) *BrasilApi {
-	return &BrasilApi{url: host}
+func NewBrasilApi(host string, timeout int) *BrasilApi {
+	return &BrasilApi{url: host, timeout: time.Duration(timeout) * time.Millisecond}
 }
 
-func (b *BrasilApi) GetCep(cep string) (*BrasilApiOutput, error) {
+func (b *BrasilApi) GetCep(cep string) (*Cep, error) {
+	start := time.Now()
 	route := fmt.Sprintf("%s/api/cep/v1/%s", b.url, cep)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -50,13 +52,13 @@ func (b *BrasilApi) GetCep(cep string) (*BrasilApiOutput, error) {
 		return nil, err
 	}
 
-	c := &BrasilApiOutput{
-		Cep:          p.Cep,
-		State:        p.State,
-		City:         p.City,
-		Neighborhood: p.Neighborhood,
-		Street:       p.Street,
-		Service:      p.Service,
+	c := &Cep{
+		Cep:         p.Cep,
+		Bairro:      p.Neighborhood,
+		Rua:         p.Street,
+		Cidade:      p.City,
+		Uf:          p.State,
+		TimeElapsed: time.Since(start).Milliseconds(),
 	}
 	return c, nil
 }

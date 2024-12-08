@@ -10,11 +10,12 @@ import (
 )
 
 type ViaCep struct {
-	url string
+	url     string
+	timeout time.Duration
 }
 
-func NewViaCep(host string) *ViaCep {
-	return &ViaCep{url: host}
+func NewViaCep(host string, timeout int) *ViaCep {
+	return &ViaCep{url: host, timeout: time.Duration(timeout) * time.Millisecond}
 }
 
 type ViaCepOutput struct {
@@ -34,8 +35,9 @@ type ViaCepOutput struct {
 }
 
 func (v *ViaCep) GetCep(cep string) (*Cep, error) {
+	start := time.Now()
 	route := fmt.Sprintf("%s/ws/%s/json/", v.url, cep)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), v.timeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, route, nil)
@@ -58,11 +60,12 @@ func (v *ViaCep) GetCep(cep string) (*Cep, error) {
 	}
 
 	c := &Cep{
-		Cep:    p.Cep,
-		Bairro: p.Bairro,
-		Rua:    p.Logradouro,
-		Cidade: p.Localidade,
-		Uf:     p.Uf,
+		Cep:         p.Cep,
+		Bairro:      p.Bairro,
+		Rua:         p.Logradouro,
+		Cidade:      p.Localidade,
+		Uf:          p.Uf,
+		TimeElapsed: time.Since(start).Milliseconds(),
 	}
 
 	return c, nil
