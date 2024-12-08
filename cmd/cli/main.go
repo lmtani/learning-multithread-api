@@ -20,21 +20,8 @@ func main() {
 	ch1 := make(chan *cep.Cep)
 	ch2 := make(chan *cep.Cep)
 
-	go func() {
-		c, err := viacep.GetCep("01153000")
-		if err != nil {
-			panic(err)
-		}
-		ch1 <- c
-	}()
-
-	go func() {
-		c, err := brasilapi.GetCep("01153000")
-		if err != nil {
-			panic(err)
-		}
-		ch2 <- c
-	}()
+	go requestCep(viacep, "01153000", ch1)
+	go requestCep(brasilapi, "01153000", ch2)
 
 	select {
 	case c := <-ch1:
@@ -44,6 +31,14 @@ func main() {
 	case <-time.After(1 * time.Second):
 		fmt.Println("timeout")
 	}
+}
+
+func requestCep(service cep.Service, cep string, ch chan<- *cep.Cep) {
+	c, err := service.GetCep(cep)
+	if err != nil {
+		panic(err)
+	}
+	ch <- c
 }
 
 func prettyPrint(c *cep.Cep, service string) string {
