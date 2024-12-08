@@ -25,9 +25,9 @@ func main() {
 
 	select {
 	case c := <-ch1:
-		fmt.Println(prettyPrint(c, "ViaCep"))
+		prettyPrint(c, "ViaCep")
 	case c := <-ch2:
-		fmt.Println(prettyPrint(c, "BrasilApi"))
+		prettyPrint(c, "BrasilApi")
 	case <-time.After(1 * time.Second):
 		fmt.Println("timeout")
 	}
@@ -41,9 +41,9 @@ func requestCep(service cep.Service, cep string, ch chan<- *cep.Cep) {
 	ch <- c
 }
 
-func prettyPrint(c *cep.Cep, service string) string {
+func prettyPrint(c *cep.Cep, service string) {
 	format := "%-19s %s\n"
-	return fmt.Sprintf(
+	msg := fmt.Sprintf(
 		format+format+format+format+format+format+"\nTime elapsed: %dms",
 		"Service:", service,
 		"CEP:", c.Cep,
@@ -53,4 +53,5 @@ func prettyPrint(c *cep.Cep, service string) string {
 		"UF:", c.Uf,
 		c.TimeElapsed,
 	)
+	fmt.Println(msg)
 }
